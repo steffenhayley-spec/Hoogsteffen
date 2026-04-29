@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Family Hub</title>
+<style>
+body {
+font-family: Arial, sans-serif;
+max-width: 600px;
+margin: 40px auto;
+background: #f9f9f9;
+padding: 20px;
+}
+h1 { color: #4a90d9; text-align: center; }
+h2 { color: #333; border-bottom: 2px solid #4a90d9; padding-bottom: 5px; }
+.section {
+background: white;
+padding: 20px;
+margin: 20px 0;
+border-radius: 10px;
+box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+input, textarea {
+padding: 8px;
+margin: 5px;
+font-size: 15px;
+width: 90%;
+}
+button {
+padding: 8px 16px;
+background: #4a90d9;
+color: white;
+border: none;
+font-size: 15px;
+cursor: pointer;
+border-radius: 5px;
+margin-top: 5px;
+}
+li {
+background: #f0f4ff;
+padding: 10px;
+margin: 8px 0;
+border-radius: 5px;
+list-style: none;
+}
+</style>
+</head>
+<body>
+
+<h1>🏠 Family Hub</h1>
+
+<!-- CALENDAR SECTION -->
+<div class="section">
+<h2>📅 Family Calendar</h2>
+<input type="text" id="eventName" placeholder="Event name">
+<input type="date" id="eventDate">
+<button onclick="addEvent()">Add Event</button>
+<ul id="eventList"></ul>
+</div>
+
+<!-- CONTACTS SECTION -->
+<div class="section">
+<h2>🚨 Emergency Contacts</h2>
+<input type="text" id="contactName" placeholder="Name">
+<input type="text" id="contactPhone" placeholder="Phone number">
+<button onclick="addContact()">Add Contact</button>
+<ul id="contactList"></ul>
+</div>
+
+<!-- BIRTHDAYS SECTION -->
+<div class="section">
+<h2>🎂 Family Members & Birthdays</h2>
+<input type="text" id="memberName" placeholder="Name">
+<input type="date" id="memberBirthday">
+<button onclick="addMember()">Add Member</button>
+<ul id="memberList"></ul>
+</div>
+
+<!-- NOTES SECTION -->
+<div class="section">
+<h2>📝 Important Notes</h2>
+<textarea id="noteText" rows="3" placeholder="Add a note..."></textarea>
+<button onclick="addNote()">Add Note</button>
+<ul id="noteList"></ul>
+</div>
+
+<script>
+function addEvent() {
+let name = document.getElementById("eventName").value;
+let date = document.getElementById("eventDate").value;
+if (!name || !date) return;
+let li = document.createElement("li");
+li.textContent = date + " — " + name;
+document.getElementById("eventList").appendChild(li);
+}
+
+function addContact() {
+let name = document.getElementById("contactName").value;
+let phone = document.getElementById("contactPhone").value;
+if (!name || !phone) return;
+let li = document.createElement("li");
+li.textContent = name + " — " + phone;
+document.getElementById("contactList").appendChild(li);
+}
+
+function addMember() {
+let name = document.getElementById("memberName").value;
+let birthday = document.getElementById("memberBirthday").value;
+if (!name || !birthday) return;
+let li = document.createElement("li");
+li.textContent = name + " 🎂 " + birthday;
+document.getElementById("memberList").appendChild(li);
+}
+
+function addNote() {
+let note = document.getElementById("noteText").value;
+if (!note) return;
+let li = document.createElement("li");
+li.textContent = note;
+document.getElementById("noteList").appendChild(li);
+}
+</script>
+
+</body>
+</html>
