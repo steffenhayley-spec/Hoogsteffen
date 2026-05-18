@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Family Home Manager</title>
+<style>
+  :root {
+    --blue: #4a90d9;
+    --blue-dark: #357abd;
+    --green: #27ae60;
+    --red: #e74c3c;
+    --orange: #f39c12;
+    --bg: #f0f4f8;
+    --card: #ffffff;
+    --text: #2c3e50;
+    --muted: #7f8c8d;
+    --border: #dde3ea;
+    --m1: #6c63ff;
+    --m2: #e67e22;
+    --m3: #2ecc71;
+    --radius: 12px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    background: linear-gradient(135deg, #4a90d9 0%, #6c63ff 100%);
+    color: white;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 10px rgba(74,144,217,0.4);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.3px; }
+  header .date-display { font-size: 0.85rem; opacity: 0.9; }
+
+  /* ── Nav Tabs ── */
+  nav {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    display: flex;
+    padding: 0 12px;
+    gap: 2px;
+    position: sticky;
+    top: 57px;
+    z-index: 99;
+  }
+  nav button {
+    background: none;
+    border: none;
+    padding: 14px 16px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    white-space: nowrap;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+  }
+  nav button.active {
+    color: var(--blue);
+    border-bottom-color: var(--blue);
+  }
+  nav button:hover:not(.active) { color: var(--text); }
+
+  /* ── Main layout ── */
+  main { max-width: 800px; margin: 0 auto; padding: 20px 16px 60px; }
+
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card h2 .icon { font-size: 1.1rem; }
+
+  /* ── Form elements ── */
+  .form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+    align-items: flex-end;
+  }
+  .form-row input,
+  .form-row select,
+  .form-row textarea {
+    flex: 1;
+    min-width: 120px;
+    padding: 9px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    outline: none;
+    transition: border 0.2s;
+    background: #fafbfc;
+  }
+  .form-row input:focus,
+  .form-row select:focus,
+  .form-row textarea:focus { border-color: var(--blue); background: white; }
+  .form-row textarea { resize: vertical; min-height: 60px; }
+
+  .btn {
+    padding: 9px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .btn-primary { background: var(--blue); color: white; }
+  .btn-primary:hover { background: var(--blue-dark); }
+  .btn-danger { background: #fde8e6; color: var(--red); }
+  .btn-danger:hover { background: var(--red); color: white; }
+  .btn-success { background: #e6f9ed; color: var(--green); }
+  .btn-success:hover { background: var(--green); color: white; }
+  .btn-sm { padding: 5px 10px; font-size: 0.78rem; }
+
+  /* ── Item lists ── */
+  .item-list { list-style: none; }
+  .item-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #f8fafc;
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  .item-list li:hover { background: #f0f4ff; }
+  .item-list li.done { opacity: 0.55; }
+  .item-list li.done .item-text { text-decoration: line-through; }
+  .item-text { flex: 1; font-size: 0.92rem; }
+  .item-meta { font-size: 0.78rem; color: var(--muted); }
+  .item-actions { display: flex; gap: 4px; flex-shrink: 0; }
+
+  /* ── Member badges ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: white;
+  }
+  .badge-m1 { background: var(--m1); }
+  .badge-m2 { background: var(--m2); }
+  .badge-m3 { background: var(--m3); }
+  .badge-all { background: var(--muted); }
+
+  /* ── Member colors ── */
+  .member-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-m1 { background: var(--m1); }
+  .dot-m2 { background: var(--m2); }
+  .dot-m3 { background: var(--m3); }
+
+  /* ── Dashboard ── */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .stat-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 18px 20px;
+    border-left: 4px solid var(--blue);
+  }
+  .stat-card.green { border-left-color: var(--green); }
+  .stat-card.orange { border-left-color: var(--orange); }
+  .stat-card.purple { border-left-color: var(--m1); }
+  .stat-card .stat-num { font-size: 2rem; font-weight: 700; line-height: 1; }
+  .stat-card .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+
+  /* ── Members section ── */
+  .members-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .member-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 18px;
+    text-align: center;
+    border-top: 4px solid var(--blue);
+    position: relative;
+  }
+  .member-card.m1 { border-top-color: var(--m1); }
+  .member-card.m2 { border-top-color: var(--m2); }
+  .member-card.m3 { border-top-color: var(--m3); }
+  .member-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    margin: 0 auto 10px;
+  }
+  .avatar-m1 { background: #ede9ff; }
+  .avatar-m2 { background: #fef3e2; }
+  .avatar-m3 { background: #e8faf0; }
+  .member-name { font-weight: 700; font-size: 1rem; }
+  .member-role { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+  .member-edit-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--muted);
+    padding: 2px 5px;
+  }
+  .member-edit-btn:hover { color: var(--blue); }
+
+  /* ── Chores ── */
+  .priority-high { border-left: 3px solid var(--red) !important; }
+  .priority-med  { border-left: 3px solid var(--orange) !important; }
+  .priority-low  { border-left: 3px solid var(--green) !important; }
+
+  .priority-pill {
+    font-size: 0.7rem;
+    padding: 1px 6px;
+    border-radius: 99px;
+    font-weight: 600;
+  }
+  .pill-high { background: #fde8e6; color: var(--red); }
+  .pill-med  { background: #fef3e2; color: var(--orange); }
+  .pill-low  { background: #e6f9ed; color: var(--green); }
+
+  /* ── Shopping ── */
+  .shop-category {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    padding: 0 4px;
+  }
+
+  /* ── Meals ── */
+  .meal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    overflow-x: auto;
+  }
+  .meal-day {
+    min-width: 90px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    overflow: hidden;
+  }
+  .meal-day-header {
+    background: var(--blue);
+    color: white;
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 5px 4px;
+  }
+  .meal-slot {
+    padding: 5px;
+    border-bottom: 1px solid var(--border);
+    min-height: 36px;
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .meal-slot:last-child { border-bottom: none; }
+  .meal-slot:hover { background: #f0f4ff; }
+  .meal-slot-label { color: var(--muted); font-size: 0.65rem; margin-bottom: 2px; }
+  .meal-slot-text { color: var(--text); word-break: break-word; }
+
+  /* ── Budget ── */
+  .budget-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .budget-stat {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+  .budget-stat .num { font-size: 1.3rem; font-weight: 700; }
+  .budget-stat .lbl { font-size: 0.75rem; color: var(--muted); }
+  .income-num { color: var(--green); }
+  .expense-num { color: var(--red); }
+  .balance-pos { color: var(--blue); }
+  .balance-neg { color: var(--red); }
+  .tx-type-income { border-left: 3px solid var(--green) !important; }
+  .tx-type-expense { border-left: 3px solid var(--red) !important; }
+
+  /* ── Calendar ── */
+  .event-date-badge {
+    background: var(--blue);
+    color: white;
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .event-upcoming { border-left: 3px solid var(--orange) !important; }
+  .event-today { border-left: 3px solid var(--green) !important; }
+  .event-past { opacity: 0.5; }
+
+  /* ── Notes ── */
+  .note-item {
+    border-left: 4px solid var(--blue);
+    padding: 10px 14px;
+    background: #f8fafc;
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 10px;
+  }
+  .note-item.m1 { border-left-color: var(--m1); }
+  .note-item.m2 { border-left-color: var(--m2); }
+  .note-item.m3 { border-left-color: var(--m3); }
+  .note-body { font-size: 0.9rem; margin-bottom: 4px; white-space: pre-wrap; }
+  .note-footer { font-size: 0.75rem; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
+
+  /* ── Contacts ── */
+  .contact-phone { font-weight: 600; color: var(--blue); }
+  .contact-relation { font-size: 0.8rem; color: var(--muted); }
+
+  /* ── Maintenance ── */
+  .status-pill {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .status-pending   { background: #fef3e2; color: var(--orange); }
+  .status-inprogress{ background: #e8f0fe; color: var(--blue); }
+  .status-done      { background: #e6f9ed; color: var(--green); }
+  .warranty-ok      { border-left: 3px solid var(--green) !important; }
+  .warranty-soon    { border-left: 3px solid var(--orange) !important; }
+  .warranty-expired { border-left: 3px solid var(--red) !important; opacity: 0.6; }
+  .maint-section-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    margin: 12px 0 4px 4px;
+  }
+
+  /* ── Empty state ── */
+  .empty-state {
+    text-align: center;
+    padding: 30px 16px;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .empty-state .empty-icon { font-size: 2.5rem; margin-bottom: 10px; }
+
+  /* ── Progress bar ── */
+  .progress-bar-wrap {
+    background: var(--border);
+    border-radius: 99px;
+    height: 6px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: var(--green);
+    transition: width 0.4s;
+  }
+
+  /* ── Inline edit ── */
+  .editable { cursor: pointer; border-bottom: 1px dashed var(--border); }
+  .editable:hover { border-bottom-color: var(--blue); color: var(--blue); }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    header h1 { font-size: 1.15rem; }
+    .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+    .budget-summary { grid-template-columns: repeat(3, 1fr); }
+    .meal-grid { grid-template-columns: repeat(4, 1fr); }
+    nav button { padding: 12px 12px; font-size: 0.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏠 Family Home Manager</h1>
+  <div class="date-display" id="headerDate"></div>
+</header>
+
+<nav id="mainNav">
+  <button class="active" data-tab="dashboard">Dashboard</button>
+  <button data-tab="members">Members</button>
+  <button data-tab="calendar">Calendar</button>
+  <button data-tab="chores">Chores</button>
+  <button data-tab="shopping">Shopping</button>
+  <button data-tab="meals">Meals</button>
+  <button data-tab="budget">Budget</button>
+  <button data-tab="notes">Notes</button>
+  <button data-tab="contacts">Contacts</button>
+  <button data-tab="maintenance">Maintenance</button>
+</nav>
+
+<main>
+
+  <!-- ══ DASHBOARD ══ -->
+  <div id="tab-dashboard" class="tab-pane active">
+    <div class="dashboard-grid" id="dashStats"></div>
+    <div class="card">
+      <h2><span class="icon">📅</span>Today's Events</h2>
+      <ul class="item-list" id="dashEvents"></ul>
+    </div>
+    <div class="card">
+      <h2><span class="icon">✅</span>Open Chores</h2>
+      <ul class="item-list" id="dashChores"></ul>
+    </div>
+    <div class="card">
+      <h2><span class="icon">🛒</span>Shopping Reminders</h2>
+      <ul class="item-list" id="dashShopping"></ul>
+    </div>
+  </div>
+
+  <!-- ══ MEMBERS ══ -->
+  <div id="tab-members" class="tab-pane">
+    <div class="members-grid" id="membersGrid"></div>
+    <div class="card" id="memberEditCard" style="display:none">
+      <h2><span class="icon">✏️</span>Edit Member</h2>
+      <div class="form-row">
+        <input type="text" id="editMemberName" placeholder="Name">
+        <input type="text" id="editMemberRole" placeholder="Role (e.g. Parent, Child)">
+        <input type="text" id="editMemberAvatar" placeholder="Emoji avatar">
+        <button class="btn btn-primary" onclick="saveMemberEdit()">Save</button>
+        <button class="btn" onclick="cancelMemberEdit()" style="background:#f0f0f0">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CALENDAR ══ -->
+  <div id="tab-calendar" class="tab-pane">
+    <div class="card">
+      <h2><span class="icon">➕</span>Add Event</h2>
+      <div class="form-row">
+        <input type="text" id="evtTitle" placeholder="Event name" style="min-width:160px">
+        <input type="date" id="evtDate">
+        <input type="time" id="evtTime" placeholder="Time (optional)">
+        <select id="evtMember">
+          <option value="all">All Family</option>
+        </select>
+        <button class="btn btn-primary" onclick="addEvent()">Add</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2><span class="icon">📅</span>Upcoming Events</h2>
+      <ul class="item-list" id="eventList"></ul>
+    </div>
+  </div>
+
+  <!-- ══ CHORES ══ -->
+  <div id="tab-chores" class="tab-pane">
+    <div class="card">
+      <h2><span class="icon">➕</span>Add Chore / Task</h2>
+      <div class="form-row">
+        <input type="text" id="choreTitle" placeholder="Task name" style="min-width:160px">
+        <select id="choreMember">
+          <option value="all">All Family</option>
+        </select>
+        <input type="date" id="choreDue" placeholder="Due date">
+        <select id="chorePriority">
+          <option value="low">Low</option>
+          <option value="med" selected>Medium</option>
+          <option value="high">High</option>
+        </select>
+        <button class="btn btn-primary" onclick="addChore()">Add</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2><span class="icon">📋</span>Task List</h2>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <button class="btn btn-sm" id="filterAll" onclick="setChoreFilter('all')" style="background:var(--blue);color:white">All</button>
+        <button class="btn btn-sm" id="filterOpen" onclick="setChoreFilter('open')" style="background:#f0f0f0">Open</button>
+        <button class="btn btn-sm" id="filterDone" onclick="setChoreFilter('done')" style="background:#f0f0f0">Done</button>
+        <span id="choreProgress" style="font-size:0.82rem;color:var(--muted);align-self:center;margin-left:auto"></span>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="choreProgressBar" style="width:0%"></div></div>
+      <br>
+      <ul class="item-list" id="choreList"></ul>
+    </div>
+  </div>
+
+  <!-- ══ SHOPPING ══ -->
+  <div id="tab-shopping" class="tab-pane">
+    <div class="card">
+      <h2><span class="icon">➕</span>Add Item</h2>
+      <div class="form-row">
+        <input type="text" id="shopItem" placeholder="Item name" style="min-width:160px">
+        <input type="number" id="shopQty" placeholder="Qty" min="1" style="max-width:80px">
+        <select id="shopCategory">
+          <option>Produce</option>
+          <option>Dairy</option>
+          <option>Meat</option>
+          <option>Bakery</option>
+          <option>Frozen</option>
+          <option>Pantry</option>
+          <option>Beverages</option>
+          <option>Cleaning</option>
+          <option>Personal Care</option>
+          <option>Other</option>
+        </select>
+        <select id="shopMember">
+          <option value="all">Family</option>
+        </select>
+        <button class="btn btn-primary" onclick="addShopItem()">Add</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2><span class="icon">🛒</span>Shopping List</h2>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button class="btn btn-sm btn-danger" onclick="clearChecked()">Remove Checked</button>
+        <span id="shopCount" style="font-size:0.82rem;color:var(--muted);align-self:center;margin-left:auto"></span>
+      </div>
+      <div id="shopList"></div>
+    </div>
+  </div>
+
+  <!-- ══ MEALS ══ -->
+  <div id="tab-meals" class="tab-pane">
+    <div class="card">
+      <h2><span class="icon">🍽️</span>Weekly Meal Planner</h2>
+      <p style="font-size:0.82rem;color:var(--muted);margin-bottom:12px">Click any slot to edit a meal.</p>
+      <div class="meal-grid" id="mealGrid"></div>
+    </div>
+    <div class="card" id="mealEditCard" style="display:none">
+      <h2><span class="icon">✏️</span>Edit Meal</h2>
+      <div class="form-row">
+        <input type="text" id="mealInput" placeholder="Meal name (leave blank to clear)">
+        <button class="btn btn-primary" onclick="saveMeal()">Save</button>
+        <button class="btn" onclick="cancelMeal()" style="background:#f0f0f0">Cancel</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2><span class="icon">➕</span>Add Recipe Idea</h2>
+      <div class="form-row">
+        <input type="text" id="recipeTitle" placeholder="Recipe name" style="min-width:160px">
+        <input type="text" id="recipeNotes" placeholder="Notes (optional)">
+        <button class="btn btn-primary" onclick="addRecipe()">Save</button>
+      </div>
+      <ul class="item-list" id="recipeList"></ul>
+    </div>
+  </div>
+
+  <!-- ══ BUDGET ══ -->
+  <div id="tab-budget" class="tab-pane">
+    <div class="budget-summary" id="budgetSummary"></div>
+    <div class="card">
+      <h2><span class="icon">➕</span>Add Transaction</h2>
+      <div class="form-row">
+        <input type="text" id="txDesc" placeholder="Description" style="min-width:140px">
+        <input type="number" id="txAmt" placeholder="Amount" min="0" step="0.01" style="max-width:100px">
+        <select id="txType">
+          <option value="expense">Expense</option>
+          <option value="income">Income</option>
+        </select>
+        <select id="txCat">
+          <option>Groceries</option>
+          <option>Utilities</option>
+          <option>Transport</option>
+          <option>Healthcare</option>
+          <option>Education</option>
+          <option>Entertainment</option>
+          <option>Clothing</option>
+          <option>Savings</option>
+          <option>Income</option>
+          <option>Other</option>
+        </select>
+        <input type="date" id="txDate">
+        <button class="btn btn-primary" onclick="addTransaction()">Add</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2><span class="icon">💰</span>Transactions</h2>
+      <ul class="item-list" id="txList"></ul>
+    </div>
+  </div>
+
+  <!-- ══ NOTES ══ -->
+  <div id="tab-notes" class="tab-pane">
+    <div class="card">
+      <h2><span class="icon">➕</span>Post a Note</h2>
+      <div class="form-row">
+        <select id="noteMember" style="max-width:140px">
+          <option value="all">Family</option>
+        </select>
+        <textarea id="noteBody" placeholder="Write a note, reminder, or message..." rows="3"></textarea>
+        <button class="btn btn-primary" onclick="addNote()">Post</button>
+      </div>
+    </div>
+    <div id="notesList"></div>
+  </div>
+
+  <!-- ══ CONTACTS ══ -->
+  <div id="tab-contacts" class="tab-pane">
+    <div class="card">
+      <h2><span class="icon">➕</span>Add Contact</h2>
+      <div class="form-row">
+        <input type="text" id="ctName" placeholder="Name" style="min-width:130px">
+        <input type="tel" id="ctPhone" placeholder="Phone">
+        <input type="text" id="ctRelation" placeholder="Relation (e.g. Doctor, School)">
+        <input type="text" id="ctNotes" placeholder="Notes (optional)">
+        <button class="btn btn-primary" onclick="addContact()">Add</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2><span class="icon">📞</span>Emergency & Important Contacts</h2>
+      <ul class="item-list" id="contactList"></ul>
+    </div>
+  </div>
+
+  <!-- ══ MAINTENANCE ══ -->
+  <div id="tab-maintenance" class="tab-pane">
+
+    <!-- Tasks -->
+    <div class="card">
+      <h2><span class="icon">🔧</span>Log a Task</h2>
+      <div class="form-row">
+        <input type="text" id="mtTitle" placeholder="Task / issue description" style="min-width:180px">
+        <select id="mtCategory">
+          <option>Plumbing</option>
+          <option>Electrical</option>
+          <option>HVAC</option>
+          <option>Appliances</option>
+          <option>Roofing</option>
+          <option>Exterior</option>
+          <option>Interior</option>
+          <option>Garden</option>
+          <option>Pest Control</option>
+          <option>Other</option>
+        </select>
+        <select id="mtPriority">
+          <option value="low">Low</option>
+          <option value="med" selected>Medium</option>
+          <option value="high">High / Urgent</option>
+        </select>
+        <input type="number" id="mtCost" placeholder="Est. cost $" min="0" step="1" style="max-width:110px">
+        <input type="text" id="mtNotes" placeholder="Notes (optional)">
+        <button class="btn btn-primary" onclick="addMaintenanceTask()">Add</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="icon">📋</span>Maintenance Tasks</h2>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <button class="btn btn-sm" id="mtFilterAll"     onclick="setMtFilter('all')"        style="background:var(--blue);color:white">All</button>
+        <button class="btn btn-sm" id="mtFilterPending" onclick="setMtFilter('pending')"    style="background:#f0f0f0">Pending</button>
+        <button class="btn btn-sm" id="mtFilterInprog"  onclick="setMtFilter('inprogress')" style="background:#f0f0f0">In Progress</button>
+        <button class="btn btn-sm" id="mtFilterDone"    onclick="setMtFilter('done')"       style="background:#f0f0f0">Done</button>
+      </div>
+      <ul class="item-list" id="maintTaskList"></ul>
+    </div>
+
+    <!-- Service Log -->
+    <div class="card">
+      <h2><span class="icon">📖</span>Log Completed Work</h2>
+      <div class="form-row">
+        <input type="text" id="slDesc" placeholder="What was done" style="min-width:180px">
+        <select id="slCategory">
+          <option>Plumbing</option>
+          <option>Electrical</option>
+          <option>HVAC</option>
+          <option>Appliances</option>
+          <option>Roofing</option>
+          <option>Exterior</option>
+          <option>Interior</option>
+          <option>Garden</option>
+          <option>Pest Control</option>
+          <option>Other</option>
+        </select>
+        <select id="slWho">
+          <option value="diy">DIY</option>
+          <option value="contractor">Contractor</option>
+          <option value="warranty">Warranty</option>
+        </select>
+        <input type="text" id="slContractor" placeholder="Company / person (optional)">
+        <input type="number" id="slCost" placeholder="Actual cost $" min="0" step="1" style="max-width:110px">
+        <input type="date" id="slDate">
+        <input type="text" id="slNotes" placeholder="Notes (optional)">
+        <button class="btn btn-primary" onclick="addServiceLog()">Save</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="icon">🗂️</span>Service History</h2>
+      <ul class="item-list" id="serviceLogList"></ul>
+    </div>
+
+    <!-- Warranties -->
+    <div class="card">
+      <h2><span class="icon">🛡️</span>Add Warranty / Appliance</h2>
+      <div class="form-row">
+        <input type="text" id="wrItem" placeholder="Item / appliance name" style="min-width:160px">
+        <input type="text" id="wrBrand" placeholder="Brand / model">
+        <input type="text" id="wrSerial" placeholder="Serial number">
+        <input type="date" id="wrPurchase" placeholder="Purchase date">
+        <input type="date" id="wrExpiry" placeholder="Warranty expiry">
+        <input type="text" id="wrNotes" placeholder="Notes (manual location, etc.)">
+        <button class="btn btn-primary" onclick="addWarranty()">Add</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="icon">📦</span>Warranties & Appliances</h2>
+      <ul class="item-list" id="warrantyList"></ul>
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+// ════════════════════════════════════════════════════
+//  DATA LAYER — localStorage backed
+// ════════════════════════════════════════════════════
+const DB_KEY = 'homemanager_v1';
+
+function loadDB() {
+  try {
+    return JSON.parse(localStorage.getItem(DB_KEY)) || defaultDB();
+  } catch { return defaultDB(); }
+}
+
+function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+
+function defaultDB() {
+  const today = new Date().toISOString().slice(0,10);
+  return {
+    members: [
+      { id: 'm1', name: 'Alex', role: 'Parent', avatar: '👤' },
+      { id: 'm2', name: 'Jordan', role: 'Parent', avatar: '👤' },
+      { id: 'm3', name: 'Sam', role: 'Child', avatar: '🧒' }
+    ],
+    events: [],
+    chores: [],
+    shopping: [],
+    meals: buildEmptyMeals(),
+    recipes: [],
+    transactions: [],
+    notes: [],
+    contacts: [
+      { id: uid(), name: 'Emergency Services', phone: '911', relation: 'Emergency', notes: '' },
+      { id: uid(), name: 'Family Doctor', phone: '', relation: 'Healthcare', notes: '' }
+    ],
+    maintTasks: [],
+    serviceLog: [],
+    warranties: []
+  };
+}
+
+function buildEmptyMeals() {
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const slots = ['Breakfast','Lunch','Dinner'];
+  const meals = {};
+  days.forEach(d => { meals[d] = {}; slots.forEach(s => meals[d][s] = ''); });
+  return meals;
+}
+
+let db = loadDB();
+if (!db.meals || typeof db.meals !== 'object') db.meals = buildEmptyMeals();
+if (!db.maintTasks) db.maintTasks = [];
+if (!db.serviceLog)  db.serviceLog  = [];
+if (!db.warranties)  db.warranties  = [];
+
+function uid() { return Math.random().toString(36).slice(2,10); }
+
+// ════════════════════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════════════════════
+document.querySelectorAll('#mainNav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#mainNav button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    renderTab(btn.dataset.tab);
+  });
+});
+
+function renderTab(tab) {
+  const r = { dashboard: renderDashboard, members: renderMembers,
+               calendar: renderEvents, chores: renderChores,
+               shopping: renderShopping, meals: renderMeals,
+               budget: renderBudget, notes: renderNotes,
+               contacts: renderContacts, maintenance: renderMaintenance };
+  if (r[tab]) r[tab]();
+}
+
+// ════════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════════
+function memberById(id) { return db.members.find(m => m.id === id) || { name: 'All', id: 'all' }; }
+function memberColor(id) { const m = db.members.find(m => m.id === id); if (!m) return 'var(--muted)'; const i = db.members.indexOf(m); return ['var(--m1)','var(--m2)','var(--m3)'][i] || 'var(--muted)'; }
+function memberClass(id) { const m = db.members.find(m => m.id === id); if (!m) return 'all'; const i = db.members.indexOf(m); return ['m1','m2','m3'][i] || 'all'; }
+
+function memberBadgeHtml(id) {
+  if (id === 'all') return '<span class="badge badge-all">All</span>';
+  const m = memberById(id);
+  const cls = memberClass(id);
+  return `<span class="badge badge-${cls}">${m.name}</span>`;
+}
+
+function formatDate(str) {
+  if (!str) return '';
+  const d = new Date(str + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function isToday(str) { return str === new Date().toISOString().slice(0,10); }
+function isPast(str) { return str < new Date().toISOString().slice(0,10); }
+
+function populateMemberSelects() {
+  ['evtMember','choreMember','shopMember','noteMember'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const val = sel.value;
+    sel.innerHTML = '<option value="all">All Family</option>';
+    db.members.forEach(m => {
+      const o = document.createElement('option');
+      o.value = m.id; o.textContent = m.avatar + ' ' + m.name;
+      sel.appendChild(o);
+    });
+    sel.value = val || 'all';
+  });
+}
+
+function setToday(inputId) {
+  const el = document.getElementById(inputId);
+  if (el && !el.value) el.value = new Date().toISOString().slice(0,10);
+}
+
+function emptyState(msg) {
+  return `<div class="empty-state"><div class="empty-icon">📭</div>${msg}</div>`;
+}
+
+function deleteBtn(onclick) {
+  return `<button class="btn btn-sm btn-danger" onclick="${onclick}">✕</button>`;
+}
+
+// ════════════════════════════════════════════════════
+//  DASHBOARD
+// ════════════════════════════════════════════════════
+function renderDashboard() {
+  const today = new Date().toISOString().slice(0,10);
+  const openChores = db.chores.filter(c => !c.done).length;
+  const upcomingEvts = db.events.filter(e => e.date >= today).length;
+  const shopItems = db.shopping.filter(s => !s.checked).length;
+  const bal = db.transactions.reduce((a, t) => a + (t.type === 'income' ? t.amount : -t.amount), 0);
+
+  document.getElementById('dashStats').innerHTML = `
+    <div class="stat-card"><div class="stat-num">${db.members.length}</div><div class="stat-label">Family Members</div></div>
+    <div class="stat-card orange"><div class="stat-num">${openChores}</div><div class="stat-label">Open Chores</div></div>
+    <div class="stat-card green"><div class="stat-num">${upcomingEvts}</div><div class="stat-label">Upcoming Events</div></div>
+    <div class="stat-card purple"><div class="stat-num">${shopItems}</div><div class="stat-label">Shopping Items</div></div>
+  `;
+
+  // Today's events
+  const todayEvts = db.events.filter(e => e.date === today);
+  const evtEl = document.getElementById('dashEvents');
+  if (!todayEvts.length) { evtEl.innerHTML = emptyState('No events today'); }
+  else {
+    evtEl.innerHTML = todayEvts.map(e =>
+      `<li><span class="item-text">${e.title}${e.time ? ' at ' + e.time : ''}</span>${memberBadgeHtml(e.member)}</li>`
+    ).join('');
+  }
+
+  // Open chores (top 5)
+  const chEl = document.getElementById('dashChores');
+  const topChores = db.chores.filter(c => !c.done).slice(0, 5);
+  if (!topChores.length) { chEl.innerHTML = emptyState('All chores done!'); }
+  else {
+    chEl.innerHTML = topChores.map(c =>
+      `<li><div class="member-dot dot-${memberClass(c.member)}"></div>
+       <span class="item-text">${c.title}</span>
+       ${c.due ? `<span class="item-meta">${formatDate(c.due)}</span>` : ''}
+       ${memberBadgeHtml(c.member)}</li>`
+    ).join('');
+  }
+
+  // Shopping (top 5)
+  const shEl = document.getElementById('dashShopping');
+  const topShop = db.shopping.filter(s => !s.checked).slice(0, 5);
+  if (!topShop.length) { shEl.innerHTML = emptyState('Shopping list is empty'); }
+  else {
+    shEl.innerHTML = topShop.map(s =>
+      `<li><span class="item-text">${s.item}</span><span class="item-meta">${s.category}</span></li>`
+    ).join('');
+  }
+}
+
+// ════════════════════════════════════════════════════
+//  MEMBERS
+// ════════════════════════════════════════════════════
+let editingMemberId = null;
+
+function renderMembers() {
+  const grid = document.getElementById('membersGrid');
+  const classes = ['m1','m2','m3'];
+  const avatarClasses = ['avatar-m1','avatar-m2','avatar-m3'];
+  grid.innerHTML = db.members.map((m, i) => `
+    <div class="member-card ${classes[i] || ''}">
+      <button class="member-edit-btn" onclick="startMemberEdit('${m.id}')">✏️</button>
+      <div class="member-avatar ${avatarClasses[i] || ''}">${m.avatar}</div>
+      <div class="member-name">${m.name}</div>
+      <div class="member-role">${m.role}</div>
+    </div>
+  `).join('');
+}
+
+function startMemberEdit(id) {
+  editingMemberId = id;
+  const m = memberById(id);
+  document.getElementById('editMemberName').value = m.name;
+  document.getElementById('editMemberRole').value = m.role;
+  document.getElementById('editMemberAvatar').value = m.avatar;
+  document.getElementById('memberEditCard').style.display = '';
+  document.getElementById('editMemberName').focus();
+}
+
+function saveMemberEdit() {
+  const m = db.members.find(m => m.id === editingMemberId);
+  if (!m) return;
+  m.name = document.getElementById('editMemberName').value.trim() || m.name;
+  m.role = document.getElementById('editMemberRole').value.trim() || m.role;
+  m.avatar = document.getElementById('editMemberAvatar').value.trim() || m.avatar;
+  saveDB();
+  cancelMemberEdit();
+  renderMembers();
+  populateMemberSelects();
+}
+
+function cancelMemberEdit() {
+  editingMemberId = null;
+  document.getElementById('memberEditCard').style.display = 'none';
+}
+
+// ════════════════════════════════════════════════════
+//  CALENDAR
+// ════════════════════════════════════════════════════
+function addEvent() {
+  const title = document.getElementById('evtTitle').value.trim();
+  const date  = document.getElementById('evtDate').value;
+  if (!title || !date) return alert('Please enter event name and date.');
+  db.events.push({ id: uid(), title, date,
+    time: document.getElementById('evtTime').value,
+    member: document.getElementById('evtMember').value });
+  db.events.sort((a,b) => a.date.localeCompare(b.date));
+  saveDB();
+  ['evtTitle','evtDate','evtTime'].forEach(id => document.getElementById(id).value = '');
+  renderEvents();
+}
+
+function deleteEvent(id) {
+  db.events = db.events.filter(e => e.id !== id);
+  saveDB(); renderEvents();
+}
+
+function renderEvents() {
+  const today = new Date().toISOString().slice(0,10);
+  const el = document.getElementById('eventList');
+  if (!db.events.length) { el.innerHTML = emptyState('No events yet. Add one above!'); return; }
+  el.innerHTML = db.events.map(e => {
+    let cls = '', label = '';
+    if (isToday(e.date)) { cls = 'event-today'; label = ' <span style="color:var(--green);font-weight:700">TODAY</span>'; }
+    else if (isPast(e.date)) cls = 'event-past';
+    else cls = 'event-upcoming';
+    return `<li class="${cls}">
+      <span class="event-date-badge">${formatDate(e.date)}</span>
+      <span class="item-text">${e.title}${e.time ? ' <span class="item-meta">@ '+e.time+'</span>' : ''}${label}</span>
+      ${memberBadgeHtml(e.member)}
+      ${deleteBtn(`deleteEvent('${e.id}')`)}
+    </li>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════
+//  CHORES
+// ════════════════════════════════════════════════════
+let choreFilter = 'all';
+
+function setChoreFilter(f) {
+  choreFilter = f;
+  ['filterAll','filterOpen','filterDone'].forEach(id => {
+    document.getElementById(id).style.background = '#f0f0f0';
+    document.getElementById(id).style.color = 'inherit';
+  });
+  const active = document.getElementById('filter' + f.charAt(0).toUpperCase() + f.slice(1));
+  active.style.background = 'var(--blue)';
+  active.style.color = 'white';
+  renderChores();
+}
+
+function addChore() {
+  const title = document.getElementById('choreTitle').value.trim();
+  if (!title) return alert('Please enter a task name.');
+  db.chores.push({ id: uid(), title, done: false,
+    member: document.getElementById('choreMember').value,
+    due: document.getElementById('choreDue').value,
+    priority: document.getElementById('chorePriority').value });
+  saveDB();
+  document.getElementById('choreTitle').value = '';
+  document.getElementById('choreDue').value = '';
+  renderChores();
+}
+
+function toggleChore(id) {
+  const c = db.chores.find(c => c.id === id);
+  if (c) { c.done = !c.done; saveDB(); renderChores(); }
+}
+
+function deleteChore(id) {
+  db.chores = db.chores.filter(c => c.id !== id);
+  saveDB(); renderChores();
+}
+
+function renderChores() {
+  const total = db.chores.length;
+  const done = db.chores.filter(c => c.done).length;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  document.getElementById('choreProgress').textContent = `${done}/${total} done`;
+  document.getElementById('choreProgressBar').style.width = pct + '%';
+
+  let list = db.chores;
+  if (choreFilter === 'open') list = list.filter(c => !c.done);
+  if (choreFilter === 'done') list = list.filter(c => c.done);
+
+  const el = document.getElementById('choreList');
+  if (!list.length) { el.innerHTML = emptyState('No tasks here.'); return; }
+
+  const priorityLabel = { high: 'High', med: 'Medium', low: 'Low' };
+  el.innerHTML = list.map(c => `
+    <li class="${c.done ? 'done' : ''} priority-${c.priority}">
+      <input type="checkbox" ${c.done ? 'checked' : ''} onchange="toggleChore('${c.id}')" style="cursor:pointer;width:16px;height:16px;flex-shrink:0">
+      <span class="item-text">${c.title}</span>
+      ${c.due ? `<span class="item-meta">${formatDate(c.due)}</span>` : ''}
+      <span class="priority-pill pill-${c.priority}">${priorityLabel[c.priority]}</span>
+      ${memberBadgeHtml(c.member)}
+      ${deleteBtn(`deleteChore('${c.id}')`)}
+    </li>`).join('');
+}
+
+// ════════════════════════════════════════════════════
+//  SHOPPING
+// ════════════════════════════════════════════════════
+function addShopItem() {
+  const item = document.getElementById('shopItem').value.trim();
+  if (!item) return alert('Please enter an item name.');
+  db.shopping.push({ id: uid(), item, checked: false,
+    qty: document.getElementById('shopQty').value || '1',
+    category: document.getElementById('shopCategory').value,
+    member: document.getElementById('shopMember').value });
+  db.shopping.sort((a, b) => a.category.localeCompare(b.category));
+  saveDB();
+  document.getElementById('shopItem').value = '';
+  document.getElementById('shopQty').value = '';
+  renderShopping();
+}
+
+function toggleShop(id) {
+  const s = db.shopping.find(s => s.id === id);
+  if (s) { s.checked = !s.checked; saveDB(); renderShopping(); }
+}
+
+function deleteShop(id) {
+  db.shopping = db.shopping.filter(s => s.id !== id);
+  saveDB(); renderShopping();
+}
+
+function clearChecked() {
+  db.shopping = db.shopping.filter(s => !s.checked);
+  saveDB(); renderShopping();
+}
+
+function renderShopping() {
+  const unchecked = db.shopping.filter(s => !s.checked).length;
+  document.getElementById('shopCount').textContent = `${unchecked} item${unchecked !== 1 ? 's' : ''} remaining`;
+
+  const el = document.getElementById('shopList');
+  if (!db.shopping.length) { el.innerHTML = emptyState('Your shopping list is empty.'); return; }
+
+  // Group by category
+  const groups = {};
+  db.shopping.forEach(s => { if (!groups[s.category]) groups[s.category] = []; groups[s.category].push(s); });
+  el.innerHTML = Object.entries(groups).map(([cat, items]) => `
+    <div class="shop-category">${cat}</div>
+    <ul class="item-list" style="margin-bottom:8px">
+      ${items.map(s => `
+        <li class="${s.checked ? 'done' : ''}">
+          <input type="checkbox" ${s.checked ? 'checked' : ''} onchange="toggleShop('${s.id}')" style="cursor:pointer;width:16px;height:16px;flex-shrink:0">
+          <span class="item-text">${s.qty !== '1' ? s.qty + '× ' : ''}${s.item}</span>
+          ${memberBadgeHtml(s.member)}
+          ${deleteBtn(`deleteShop('${s.id}')`)}
+        </li>`).join('')}
+    </ul>`).join('');
+}
+
+// ════════════════════════════════════════════════════
+//  MEALS
+// ════════════════════════════════════════════════════
+const DAYS  = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const SLOTS = ['Breakfast','Lunch','Dinner'];
+let editingMeal = null;
+
+function renderMeals() {
+  const grid = document.getElementById('mealGrid');
+  grid.innerHTML = DAYS.map(day => `
+    <div class="meal-day">
+      <div class="meal-day-header">${day}</div>
+      ${SLOTS.map(slot => `
+        <div class="meal-slot" onclick="startMealEdit('${day}','${slot}')">
+          <div class="meal-slot-label">${slot.slice(0,1)}</div>
+          <div class="meal-slot-text">${db.meals[day]?.[slot] || ''}</div>
+        </div>`).join('')}
+    </div>`).join('');
+
+  const recEl = document.getElementById('recipeList');
+  if (!db.recipes.length) { recEl.innerHTML = emptyState('No recipe ideas yet.'); return; }
+  recEl.innerHTML = db.recipes.map(r => `
+    <li>
+      <span class="item-text"><strong>${r.title}</strong>${r.notes ? ' — ' + r.notes : ''}</span>
+      ${deleteBtn(`deleteRecipe('${r.id}')`)}
+    </li>`).join('');
+}
+
+function startMealEdit(day, slot) {
+  editingMeal = { day, slot };
+  document.getElementById('mealInput').value = db.meals[day]?.[slot] || '';
+  document.getElementById('mealEditCard').style.display = '';
+  document.getElementById('mealInput').focus();
+  document.getElementById('mealEditCard').querySelector('h2').innerHTML =
+    `<span class="icon">✏️</span>Edit ${day} ${slot}`;
+}
+
+function saveMeal() {
+  if (!editingMeal) return;
+  const { day, slot } = editingMeal;
+  if (!db.meals[day]) db.meals[day] = {};
+  db.meals[day][slot] = document.getElementById('mealInput').value.trim();
+  saveDB(); cancelMeal(); renderMeals();
+}
+
+function cancelMeal() {
+  editingMeal = null;
+  document.getElementById('mealEditCard').style.display = 'none';
+}
+
+function addRecipe() {
+  const title = document.getElementById('recipeTitle').value.trim();
+  if (!title) return;
+  db.recipes.push({ id: uid(), title, notes: document.getElementById('recipeNotes').value.trim() });
+  saveDB();
+  document.getElementById('recipeTitle').value = '';
+  document.getElementById('recipeNotes').value = '';
+  renderMeals();
+}
+
+function deleteRecipe(id) {
+  db.recipes = db.recipes.filter(r => r.id !== id);
+  saveDB(); renderMeals();
+}
+
+// ════════════════════════════════════════════════════
+//  BUDGET
+// ════════════════════════════════════════════════════
+function addTransaction() {
+  const desc = document.getElementById('txDesc').value.trim();
+  const amt  = parseFloat(document.getElementById('txAmt').value);
+  const date = document.getElementById('txDate').value;
+  if (!desc || !amt || !date) return alert('Please fill in description, amount, and date.');
+  db.transactions.unshift({ id: uid(), desc, amount: amt,
+    type: document.getElementById('txType').value,
+    category: document.getElementById('txCat').value, date });
+  saveDB();
+  ['txDesc','txAmt','txDate'].forEach(id => document.getElementById(id).value = '');
+  renderBudget();
+}
+
+function deleteTransaction(id) {
+  db.transactions = db.transactions.filter(t => t.id !== id);
+  saveDB(); renderBudget();
+}
+
+function renderBudget() {
+  const income  = db.transactions.filter(t => t.type === 'income').reduce((a,t) => a + t.amount, 0);
+  const expense = db.transactions.filter(t => t.type === 'expense').reduce((a,t) => a + t.amount, 0);
+  const balance = income - expense;
+  const balCls  = balance >= 0 ? 'balance-pos' : 'balance-neg';
+
+  document.getElementById('budgetSummary').innerHTML = `
+    <div class="budget-stat"><div class="num income-num">$${income.toFixed(2)}</div><div class="lbl">Income</div></div>
+    <div class="budget-stat"><div class="num expense-num">$${expense.toFixed(2)}</div><div class="lbl">Expenses</div></div>
+    <div class="budget-stat"><div class="num ${balCls}">${balance < 0 ? '-' : ''}$${Math.abs(balance).toFixed(2)}</div><div class="lbl">Balance</div></div>
+  `;
+
+  const el = document.getElementById('txList');
+  if (!db.transactions.length) { el.innerHTML = emptyState('No transactions yet.'); return; }
+  el.innerHTML = db.transactions.map(t => `
+    <li class="tx-type-${t.type}">
+      <span style="font-size:1.1rem">${t.type === 'income' ? '⬆️' : '⬇️'}</span>
+      <span class="item-text">${t.desc} <span class="item-meta">${t.category}</span></span>
+      <span style="font-weight:700;color:${t.type === 'income' ? 'var(--green)' : 'var(--red)'}">
+        ${t.type === 'income' ? '+' : '-'}$${t.amount.toFixed(2)}
+      </span>
+      <span class="item-meta">${formatDate(t.date)}</span>
+      ${deleteBtn(`deleteTransaction('${t.id}')`)}
+    </li>`).join('');
+}
+
+// ════════════════════════════════════════════════════
+//  NOTES
+// ════════════════════════════════════════════════════
+function addNote() {
+  const body = document.getElementById('noteBody').value.trim();
+  if (!body) return alert('Please write something.');
+  const member = document.getElementById('noteMember').value;
+  db.notes.unshift({ id: uid(), body, member, ts: new Date().toISOString() });
+  saveDB();
+  document.getElementById('noteBody').value = '';
+  renderNotes();
+}
+
+function deleteNote(id) {
+  db.notes = db.notes.filter(n => n.id !== id);
+  saveDB(); renderNotes();
+}
+
+function renderNotes() {
+  const el = document.getElementById('notesList');
+  if (!db.notes.length) { el.innerHTML = `<div class="card">${emptyState('No notes yet. Post one above!')}</div>`; return; }
+  el.innerHTML = db.notes.map(n => {
+    const cls = memberClass(n.member);
+    const mName = n.member === 'all' ? 'Family' : memberById(n.member).name;
+    const ts = new Date(n.ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return `<div class="note-item ${cls}">
+      <div class="note-body">${n.body}</div>
+      <div class="note-footer">
+        <span>${memberBadgeHtml(n.member)} ${mName}</span>
+        <span style="display:flex;align-items:center;gap:8px">
+          <span>${ts}</span>
+          ${deleteBtn(`deleteNote('${n.id}')`)}
+        </span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════
+//  CONTACTS
+// ════════════════════════════════════════════════════
+function addContact() {
+  const name = document.getElementById('ctName').value.trim();
+  const phone = document.getElementById('ctPhone').value.trim();
+  if (!name) return alert('Please enter a name.');
+  db.contacts.push({ id: uid(), name, phone,
+    relation: document.getElementById('ctRelation').value.trim(),
+    notes: document.getElementById('ctNotes').value.trim() });
+  saveDB();
+  ['ctName','ctPhone','ctRelation','ctNotes'].forEach(id => document.getElementById(id).value = '');
+  renderContacts();
+}
+
+function deleteContact(id) {
+  db.contacts = db.contacts.filter(c => c.id !== id);
+  saveDB(); renderContacts();
+}
+
+function renderContacts() {
+  const el = document.getElementById('contactList');
+  if (!db.contacts.length) { el.innerHTML = emptyState('No contacts saved.'); return; }
+  el.innerHTML = db.contacts.map(c => `
+    <li>
+      <span style="font-size:1.2rem">📞</span>
+      <span class="item-text">
+        <strong>${c.name}</strong>
+        ${c.relation ? `<span class="contact-relation"> · ${c.relation}</span>` : ''}
+        ${c.notes ? `<br><span class="item-meta">${c.notes}</span>` : ''}
+      </span>
+      ${c.phone ? `<a href="tel:${c.phone}" class="contact-phone">${c.phone}</a>` : ''}
+      ${deleteBtn(`deleteContact('${c.id}')`)}
+    </li>`).join('');
+}
+
+// ════════════════════════════════════════════════════
+//  MAINTENANCE
+// ════════════════════════════════════════════════════
+let mtFilter = 'all';
+
+function setMtFilter(f) {
+  mtFilter = f;
+  ['mtFilterAll','mtFilterPending','mtFilterInprog','mtFilterDone'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.background = '#f0f0f0'; el.style.color = 'inherit'; }
+  });
+  const map = { all: 'mtFilterAll', pending: 'mtFilterPending', inprogress: 'mtFilterInprog', done: 'mtFilterDone' };
+  const active = document.getElementById(map[f]);
+  if (active) { active.style.background = 'var(--blue)'; active.style.color = 'white'; }
+  renderMaintTasks();
+}
+
+function addMaintenanceTask() {
+  const title = document.getElementById('mtTitle').value.trim();
+  if (!title) return alert('Please enter a task description.');
+  db.maintTasks.unshift({
+    id: uid(), title, status: 'pending',
+    category: document.getElementById('mtCategory').value,
+    priority: document.getElementById('mtPriority').value,
+    cost: document.getElementById('mtCost').value,
+    notes: document.getElementById('mtNotes').value.trim(),
+    added: new Date().toISOString().slice(0,10)
+  });
+  saveDB();
+  ['mtTitle','mtCost','mtNotes'].forEach(id => document.getElementById(id).value = '');
+  renderMaintTasks();
+}
+
+function setMtStatus(id, status) {
+  const t = db.maintTasks.find(t => t.id === id);
+  if (t) { t.status = status; saveDB(); renderMaintTasks(); }
+}
+
+function deleteMaintTask(id) {
+  db.maintTasks = db.maintTasks.filter(t => t.id !== id);
+  saveDB(); renderMaintTasks();
+}
+
+function renderMaintTasks() {
+  let list = db.maintTasks;
+  if (mtFilter !== 'all') list = list.filter(t => t.status === mtFilter);
+
+  const el = document.getElementById('maintTaskList');
+  if (!list.length) { el.innerHTML = emptyState('No maintenance tasks here.'); return; }
+
+  const statusLabel = { pending: 'Pending', inprogress: 'In Progress', done: 'Done' };
+  const priorityLabel = { high: 'Urgent', med: 'Medium', low: 'Low' };
+
+  el.innerHTML = list.map(t => `
+    <li class="${t.status === 'done' ? 'done' : ''} priority-${t.priority}">
+      <span style="font-size:1.1rem">${categoryIcon(t.category)}</span>
+      <span class="item-text">
+        <strong>${t.title}</strong>
+        <br><span class="item-meta">${t.category}${t.notes ? ' · ' + t.notes : ''}${t.cost ? ' · Est. $' + t.cost : ''}</span>
+      </span>
+      <span class="priority-pill pill-${t.priority}">${priorityLabel[t.priority]}</span>
+      <span class="status-pill status-${t.status}">${statusLabel[t.status]}</span>
+      <select onchange="setMtStatus('${t.id}', this.value)" style="font-size:0.78rem;padding:3px 6px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
+        <option value="pending"    ${t.status==='pending'    ? 'selected':''}>Pending</option>
+        <option value="inprogress" ${t.status==='inprogress' ? 'selected':''}>In Progress</option>
+        <option value="done"       ${t.status==='done'       ? 'selected':''}>Done</option>
+      </select>
+      ${deleteBtn(`deleteMaintTask('${t.id}')`)}
+    </li>`).join('');
+}
+
+function categoryIcon(cat) {
+  const icons = { Plumbing:'🚿', Electrical:'⚡', HVAC:'❄️', Appliances:'🏠',
+                  Roofing:'🏗️', Exterior:'🌳', Interior:'🖼️', Garden:'🌱',
+                  'Pest Control':'🐛', Other:'🔧' };
+  return icons[cat] || '🔧';
+}
+
+function addServiceLog() {
+  const desc = document.getElementById('slDesc').value.trim();
+  const date = document.getElementById('slDate').value;
+  if (!desc || !date) return alert('Please enter description and date.');
+  db.serviceLog.unshift({
+    id: uid(), desc, date,
+    category: document.getElementById('slCategory').value,
+    who: document.getElementById('slWho').value,
+    contractor: document.getElementById('slContractor').value.trim(),
+    cost: document.getElementById('slCost').value,
+    notes: document.getElementById('slNotes').value.trim()
+  });
+  saveDB();
+  ['slDesc','slContractor','slCost','slNotes','slDate'].forEach(id => document.getElementById(id).value = '');
+  renderServiceLog();
+}
+
+function deleteServiceLog(id) {
+  db.serviceLog = db.serviceLog.filter(s => s.id !== id);
+  saveDB(); renderServiceLog();
+}
+
+function renderServiceLog() {
+  const el = document.getElementById('serviceLogList');
+  if (!db.serviceLog.length) { el.innerHTML = emptyState('No service history yet.'); return; }
+  const whoLabel = { diy: 'DIY', contractor: 'Contractor', warranty: 'Warranty' };
+  el.innerHTML = db.serviceLog.map(s => `
+    <li>
+      <span style="font-size:1.1rem">${categoryIcon(s.category)}</span>
+      <span class="item-text">
+        <strong>${s.desc}</strong>
+        <br><span class="item-meta">${s.category} · ${whoLabel[s.who]}${s.contractor ? ' (' + s.contractor + ')' : ''}${s.cost ? ' · $' + s.cost : ''}${s.notes ? ' · ' + s.notes : ''}</span>
+      </span>
+      <span class="event-date-badge">${formatDate(s.date)}</span>
+      ${deleteBtn(`deleteServiceLog('${s.id}')`)}
+    </li>`).join('');
+}
+
+function addWarranty() {
+  const item = document.getElementById('wrItem').value.trim();
+  if (!item) return alert('Please enter an item name.');
+  db.warranties.push({
+    id: uid(), item,
+    brand: document.getElementById('wrBrand').value.trim(),
+    serial: document.getElementById('wrSerial').value.trim(),
+    purchase: document.getElementById('wrPurchase').value,
+    expiry: document.getElementById('wrExpiry').value,
+    notes: document.getElementById('wrNotes').value.trim()
+  });
+  db.warranties.sort((a, b) => (a.expiry || '9999').localeCompare(b.expiry || '9999'));
+  saveDB();
+  ['wrItem','wrBrand','wrSerial','wrPurchase','wrExpiry','wrNotes'].forEach(id => document.getElementById(id).value = '');
+  renderWarranties();
+}
+
+function deleteWarranty(id) {
+  db.warranties = db.warranties.filter(w => w.id !== id);
+  saveDB(); renderWarranties();
+}
+
+function warrantyStatus(expiry) {
+  if (!expiry) return { cls: '', label: 'No expiry' };
+  const today = new Date().toISOString().slice(0,10);
+  const daysLeft = Math.round((new Date(expiry) - new Date(today)) / 86400000);
+  if (daysLeft < 0)   return { cls: 'warranty-expired', label: 'Expired' };
+  if (daysLeft <= 90) return { cls: 'warranty-soon',    label: `${daysLeft}d left` };
+  return { cls: 'warranty-ok', label: `${daysLeft}d left` };
+}
+
+function renderWarranties() {
+  const el = document.getElementById('warrantyList');
+  if (!db.warranties.length) { el.innerHTML = emptyState('No warranties tracked yet.'); return; }
+  el.innerHTML = db.warranties.map(w => {
+    const ws = warrantyStatus(w.expiry);
+    return `<li class="${ws.cls}">
+      <span style="font-size:1.1rem">🛡️</span>
+      <span class="item-text">
+        <strong>${w.item}</strong>${w.brand ? ' <span class="item-meta">· ' + w.brand + '</span>' : ''}
+        ${w.serial ? `<br><span class="item-meta">S/N: ${w.serial}</span>` : ''}
+        ${w.purchase ? `<br><span class="item-meta">Purchased: ${formatDate(w.purchase)}</span>` : ''}
+        ${w.notes ? `<br><span class="item-meta">${w.notes}</span>` : ''}
+      </span>
+      ${w.expiry ? `<span class="event-date-badge" style="background:${ws.cls==='warranty-expired'?'var(--red)':ws.cls==='warranty-soon'?'var(--orange)':'var(--green)'}">
+        ${ws.label}<br><span style="font-weight:400;font-size:0.7rem">${formatDate(w.expiry)}</span>
+      </span>` : '<span class="item-meta">No expiry</span>'}
+      ${deleteBtn(`deleteWarranty('${w.id}')`)}
+    </li>`;
+  }).join('');
+}
+
+function renderMaintenance() {
+  renderMaintTasks();
+  renderServiceLog();
+  renderWarranties();
+}
+
+// ════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════
+function init() {
+  const now = new Date();
+  document.getElementById('headerDate').textContent =
+    now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+  setToday('evtDate');
+  setToday('choreDue');
+  setToday('txDate');
+  setToday('slDate');
+
+  populateMemberSelects();
+  renderDashboard();
+  renderMembers();
+}
+
+init();
+</script>
+</body>
+</html>
