@@ -377,6 +377,29 @@
   .contact-phone { font-weight: 600; color: var(--blue); }
   .contact-relation { font-size: 0.8rem; color: var(--muted); }
 
+  /* ── Maintenance ── */
+  .status-pill {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .status-pending   { background: #fef3e2; color: var(--orange); }
+  .status-inprogress{ background: #e8f0fe; color: var(--blue); }
+  .status-done      { background: #e6f9ed; color: var(--green); }
+  .warranty-ok      { border-left: 3px solid var(--green) !important; }
+  .warranty-soon    { border-left: 3px solid var(--orange) !important; }
+  .warranty-expired { border-left: 3px solid var(--red) !important; opacity: 0.6; }
+  .maint-section-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    margin: 12px 0 4px 4px;
+  }
+
   /* ── Empty state ── */
   .empty-state {
     text-align: center;
@@ -432,6 +455,7 @@
   <button data-tab="budget">Budget</button>
   <button data-tab="notes">Notes</button>
   <button data-tab="contacts">Contacts</button>
+  <button data-tab="maintenance">Maintenance</button>
 </nav>
 
 <main>
@@ -648,6 +672,104 @@
     </div>
   </div>
 
+  <!-- ══ MAINTENANCE ══ -->
+  <div id="tab-maintenance" class="tab-pane">
+
+    <!-- Tasks -->
+    <div class="card">
+      <h2><span class="icon">🔧</span>Log a Task</h2>
+      <div class="form-row">
+        <input type="text" id="mtTitle" placeholder="Task / issue description" style="min-width:180px">
+        <select id="mtCategory">
+          <option>Plumbing</option>
+          <option>Electrical</option>
+          <option>HVAC</option>
+          <option>Appliances</option>
+          <option>Roofing</option>
+          <option>Exterior</option>
+          <option>Interior</option>
+          <option>Garden</option>
+          <option>Pest Control</option>
+          <option>Other</option>
+        </select>
+        <select id="mtPriority">
+          <option value="low">Low</option>
+          <option value="med" selected>Medium</option>
+          <option value="high">High / Urgent</option>
+        </select>
+        <input type="number" id="mtCost" placeholder="Est. cost $" min="0" step="1" style="max-width:110px">
+        <input type="text" id="mtNotes" placeholder="Notes (optional)">
+        <button class="btn btn-primary" onclick="addMaintenanceTask()">Add</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="icon">📋</span>Maintenance Tasks</h2>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <button class="btn btn-sm" id="mtFilterAll"     onclick="setMtFilter('all')"        style="background:var(--blue);color:white">All</button>
+        <button class="btn btn-sm" id="mtFilterPending" onclick="setMtFilter('pending')"    style="background:#f0f0f0">Pending</button>
+        <button class="btn btn-sm" id="mtFilterInprog"  onclick="setMtFilter('inprogress')" style="background:#f0f0f0">In Progress</button>
+        <button class="btn btn-sm" id="mtFilterDone"    onclick="setMtFilter('done')"       style="background:#f0f0f0">Done</button>
+      </div>
+      <ul class="item-list" id="maintTaskList"></ul>
+    </div>
+
+    <!-- Service Log -->
+    <div class="card">
+      <h2><span class="icon">📖</span>Log Completed Work</h2>
+      <div class="form-row">
+        <input type="text" id="slDesc" placeholder="What was done" style="min-width:180px">
+        <select id="slCategory">
+          <option>Plumbing</option>
+          <option>Electrical</option>
+          <option>HVAC</option>
+          <option>Appliances</option>
+          <option>Roofing</option>
+          <option>Exterior</option>
+          <option>Interior</option>
+          <option>Garden</option>
+          <option>Pest Control</option>
+          <option>Other</option>
+        </select>
+        <select id="slWho">
+          <option value="diy">DIY</option>
+          <option value="contractor">Contractor</option>
+          <option value="warranty">Warranty</option>
+        </select>
+        <input type="text" id="slContractor" placeholder="Company / person (optional)">
+        <input type="number" id="slCost" placeholder="Actual cost $" min="0" step="1" style="max-width:110px">
+        <input type="date" id="slDate">
+        <input type="text" id="slNotes" placeholder="Notes (optional)">
+        <button class="btn btn-primary" onclick="addServiceLog()">Save</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="icon">🗂️</span>Service History</h2>
+      <ul class="item-list" id="serviceLogList"></ul>
+    </div>
+
+    <!-- Warranties -->
+    <div class="card">
+      <h2><span class="icon">🛡️</span>Add Warranty / Appliance</h2>
+      <div class="form-row">
+        <input type="text" id="wrItem" placeholder="Item / appliance name" style="min-width:160px">
+        <input type="text" id="wrBrand" placeholder="Brand / model">
+        <input type="text" id="wrSerial" placeholder="Serial number">
+        <input type="date" id="wrPurchase" placeholder="Purchase date">
+        <input type="date" id="wrExpiry" placeholder="Warranty expiry">
+        <input type="text" id="wrNotes" placeholder="Notes (manual location, etc.)">
+        <button class="btn btn-primary" onclick="addWarranty()">Add</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="icon">📦</span>Warranties & Appliances</h2>
+      <ul class="item-list" id="warrantyList"></ul>
+    </div>
+
+  </div>
+
 </main>
 
 <script>
@@ -682,7 +804,10 @@ function defaultDB() {
     contacts: [
       { id: uid(), name: 'Emergency Services', phone: '911', relation: 'Emergency', notes: '' },
       { id: uid(), name: 'Family Doctor', phone: '', relation: 'Healthcare', notes: '' }
-    ]
+    ],
+    maintTasks: [],
+    serviceLog: [],
+    warranties: []
   };
 }
 
@@ -696,6 +821,9 @@ function buildEmptyMeals() {
 
 let db = loadDB();
 if (!db.meals || typeof db.meals !== 'object') db.meals = buildEmptyMeals();
+if (!db.maintTasks) db.maintTasks = [];
+if (!db.serviceLog)  db.serviceLog  = [];
+if (!db.warranties)  db.warranties  = [];
 
 function uid() { return Math.random().toString(36).slice(2,10); }
 
@@ -717,7 +845,7 @@ function renderTab(tab) {
                calendar: renderEvents, chores: renderChores,
                shopping: renderShopping, meals: renderMeals,
                budget: renderBudget, notes: renderNotes,
-               contacts: renderContacts };
+               contacts: renderContacts, maintenance: renderMaintenance };
   if (r[tab]) r[tab]();
 }
 
@@ -1216,6 +1344,180 @@ function renderContacts() {
 }
 
 // ════════════════════════════════════════════════════
+//  MAINTENANCE
+// ════════════════════════════════════════════════════
+let mtFilter = 'all';
+
+function setMtFilter(f) {
+  mtFilter = f;
+  ['mtFilterAll','mtFilterPending','mtFilterInprog','mtFilterDone'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.background = '#f0f0f0'; el.style.color = 'inherit'; }
+  });
+  const map = { all: 'mtFilterAll', pending: 'mtFilterPending', inprogress: 'mtFilterInprog', done: 'mtFilterDone' };
+  const active = document.getElementById(map[f]);
+  if (active) { active.style.background = 'var(--blue)'; active.style.color = 'white'; }
+  renderMaintTasks();
+}
+
+function addMaintenanceTask() {
+  const title = document.getElementById('mtTitle').value.trim();
+  if (!title) return alert('Please enter a task description.');
+  db.maintTasks.unshift({
+    id: uid(), title, status: 'pending',
+    category: document.getElementById('mtCategory').value,
+    priority: document.getElementById('mtPriority').value,
+    cost: document.getElementById('mtCost').value,
+    notes: document.getElementById('mtNotes').value.trim(),
+    added: new Date().toISOString().slice(0,10)
+  });
+  saveDB();
+  ['mtTitle','mtCost','mtNotes'].forEach(id => document.getElementById(id).value = '');
+  renderMaintTasks();
+}
+
+function setMtStatus(id, status) {
+  const t = db.maintTasks.find(t => t.id === id);
+  if (t) { t.status = status; saveDB(); renderMaintTasks(); }
+}
+
+function deleteMaintTask(id) {
+  db.maintTasks = db.maintTasks.filter(t => t.id !== id);
+  saveDB(); renderMaintTasks();
+}
+
+function renderMaintTasks() {
+  let list = db.maintTasks;
+  if (mtFilter !== 'all') list = list.filter(t => t.status === mtFilter);
+
+  const el = document.getElementById('maintTaskList');
+  if (!list.length) { el.innerHTML = emptyState('No maintenance tasks here.'); return; }
+
+  const statusLabel = { pending: 'Pending', inprogress: 'In Progress', done: 'Done' };
+  const priorityLabel = { high: 'Urgent', med: 'Medium', low: 'Low' };
+
+  el.innerHTML = list.map(t => `
+    <li class="${t.status === 'done' ? 'done' : ''} priority-${t.priority}">
+      <span style="font-size:1.1rem">${categoryIcon(t.category)}</span>
+      <span class="item-text">
+        <strong>${t.title}</strong>
+        <br><span class="item-meta">${t.category}${t.notes ? ' · ' + t.notes : ''}${t.cost ? ' · Est. $' + t.cost : ''}</span>
+      </span>
+      <span class="priority-pill pill-${t.priority}">${priorityLabel[t.priority]}</span>
+      <span class="status-pill status-${t.status}">${statusLabel[t.status]}</span>
+      <select onchange="setMtStatus('${t.id}', this.value)" style="font-size:0.78rem;padding:3px 6px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
+        <option value="pending"    ${t.status==='pending'    ? 'selected':''}>Pending</option>
+        <option value="inprogress" ${t.status==='inprogress' ? 'selected':''}>In Progress</option>
+        <option value="done"       ${t.status==='done'       ? 'selected':''}>Done</option>
+      </select>
+      ${deleteBtn(`deleteMaintTask('${t.id}')`)}
+    </li>`).join('');
+}
+
+function categoryIcon(cat) {
+  const icons = { Plumbing:'🚿', Electrical:'⚡', HVAC:'❄️', Appliances:'🏠',
+                  Roofing:'🏗️', Exterior:'🌳', Interior:'🖼️', Garden:'🌱',
+                  'Pest Control':'🐛', Other:'🔧' };
+  return icons[cat] || '🔧';
+}
+
+function addServiceLog() {
+  const desc = document.getElementById('slDesc').value.trim();
+  const date = document.getElementById('slDate').value;
+  if (!desc || !date) return alert('Please enter description and date.');
+  db.serviceLog.unshift({
+    id: uid(), desc, date,
+    category: document.getElementById('slCategory').value,
+    who: document.getElementById('slWho').value,
+    contractor: document.getElementById('slContractor').value.trim(),
+    cost: document.getElementById('slCost').value,
+    notes: document.getElementById('slNotes').value.trim()
+  });
+  saveDB();
+  ['slDesc','slContractor','slCost','slNotes','slDate'].forEach(id => document.getElementById(id).value = '');
+  renderServiceLog();
+}
+
+function deleteServiceLog(id) {
+  db.serviceLog = db.serviceLog.filter(s => s.id !== id);
+  saveDB(); renderServiceLog();
+}
+
+function renderServiceLog() {
+  const el = document.getElementById('serviceLogList');
+  if (!db.serviceLog.length) { el.innerHTML = emptyState('No service history yet.'); return; }
+  const whoLabel = { diy: 'DIY', contractor: 'Contractor', warranty: 'Warranty' };
+  el.innerHTML = db.serviceLog.map(s => `
+    <li>
+      <span style="font-size:1.1rem">${categoryIcon(s.category)}</span>
+      <span class="item-text">
+        <strong>${s.desc}</strong>
+        <br><span class="item-meta">${s.category} · ${whoLabel[s.who]}${s.contractor ? ' (' + s.contractor + ')' : ''}${s.cost ? ' · $' + s.cost : ''}${s.notes ? ' · ' + s.notes : ''}</span>
+      </span>
+      <span class="event-date-badge">${formatDate(s.date)}</span>
+      ${deleteBtn(`deleteServiceLog('${s.id}')`)}
+    </li>`).join('');
+}
+
+function addWarranty() {
+  const item = document.getElementById('wrItem').value.trim();
+  if (!item) return alert('Please enter an item name.');
+  db.warranties.push({
+    id: uid(), item,
+    brand: document.getElementById('wrBrand').value.trim(),
+    serial: document.getElementById('wrSerial').value.trim(),
+    purchase: document.getElementById('wrPurchase').value,
+    expiry: document.getElementById('wrExpiry').value,
+    notes: document.getElementById('wrNotes').value.trim()
+  });
+  db.warranties.sort((a, b) => (a.expiry || '9999').localeCompare(b.expiry || '9999'));
+  saveDB();
+  ['wrItem','wrBrand','wrSerial','wrPurchase','wrExpiry','wrNotes'].forEach(id => document.getElementById(id).value = '');
+  renderWarranties();
+}
+
+function deleteWarranty(id) {
+  db.warranties = db.warranties.filter(w => w.id !== id);
+  saveDB(); renderWarranties();
+}
+
+function warrantyStatus(expiry) {
+  if (!expiry) return { cls: '', label: 'No expiry' };
+  const today = new Date().toISOString().slice(0,10);
+  const daysLeft = Math.round((new Date(expiry) - new Date(today)) / 86400000);
+  if (daysLeft < 0)   return { cls: 'warranty-expired', label: 'Expired' };
+  if (daysLeft <= 90) return { cls: 'warranty-soon',    label: `${daysLeft}d left` };
+  return { cls: 'warranty-ok', label: `${daysLeft}d left` };
+}
+
+function renderWarranties() {
+  const el = document.getElementById('warrantyList');
+  if (!db.warranties.length) { el.innerHTML = emptyState('No warranties tracked yet.'); return; }
+  el.innerHTML = db.warranties.map(w => {
+    const ws = warrantyStatus(w.expiry);
+    return `<li class="${ws.cls}">
+      <span style="font-size:1.1rem">🛡️</span>
+      <span class="item-text">
+        <strong>${w.item}</strong>${w.brand ? ' <span class="item-meta">· ' + w.brand + '</span>' : ''}
+        ${w.serial ? `<br><span class="item-meta">S/N: ${w.serial}</span>` : ''}
+        ${w.purchase ? `<br><span class="item-meta">Purchased: ${formatDate(w.purchase)}</span>` : ''}
+        ${w.notes ? `<br><span class="item-meta">${w.notes}</span>` : ''}
+      </span>
+      ${w.expiry ? `<span class="event-date-badge" style="background:${ws.cls==='warranty-expired'?'var(--red)':ws.cls==='warranty-soon'?'var(--orange)':'var(--green)'}">
+        ${ws.label}<br><span style="font-weight:400;font-size:0.7rem">${formatDate(w.expiry)}</span>
+      </span>` : '<span class="item-meta">No expiry</span>'}
+      ${deleteBtn(`deleteWarranty('${w.id}')`)}
+    </li>`;
+  }).join('');
+}
+
+function renderMaintenance() {
+  renderMaintTasks();
+  renderServiceLog();
+  renderWarranties();
+}
+
+// ════════════════════════════════════════════════════
 //  INIT
 // ════════════════════════════════════════════════════
 function init() {
@@ -1226,6 +1528,7 @@ function init() {
   setToday('evtDate');
   setToday('choreDue');
   setToday('txDate');
+  setToday('slDate');
 
   populateMemberSelects();
   renderDashboard();
